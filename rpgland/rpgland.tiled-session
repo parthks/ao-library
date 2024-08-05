@@ -1,0 +1,39 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "TmVIwkR97Vo2JmeAD34o_PqLUc7UUIiJ2G0pb7uk5yo.json",
+    "expandedProjectPaths": [
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "": {
+            "scaleInDock": 1
+        },
+        "TmVIwkR97Vo2JmeAD34o_PqLUc7UUIiJ2G0pb7uk5yo.json": {
+            "scale": 1.048,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 708.969465648855,
+                "y": 782.9198473282443
+            }
+        },
+        "TmVIwkR97Vo2JmeAD34o_PqLUc7UUIiJ2G0pb7uk5yo.json#Primary": {
+            "scaleInDock": 2.4608
+        }
+    },
+    "last.imagePath": "/Users/parth/Desktop/ao-library/rpgland",
+    "openFiles": [
+        "TmVIwkR97Vo2JmeAD34o_PqLUc7UUIiJ2G0pb7uk5yo.json"
+    ],
+    "project": "rpgland.tiled-project",
+    "recentFiles": [
+        "TmVIwkR97Vo2JmeAD34o_PqLUc7UUIiJ2G0pb7uk5yo.json"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}

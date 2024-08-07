@@ -24,6 +24,7 @@ function GetSchemaTags()
             "ContentType": {
                 "title": "Content Type",
                 "type": "string",
+                "value": "image",
                 "enum": ["image", "video", "pdf"]
               },
               "FileOwner": {
@@ -86,7 +87,8 @@ Handlers.add(
                 Guide = {
                     Title = 'Welcome Adventurer!!',
                     Description =
-                        'I am Marky The Guide. ' .. count,
+                        '## I am Marky https://www.google.com The Guide.  \n                    # Hello Friend!\n\n\n\tI have been *summoned* ' ..
+                        count .. " times",
                     Schema = {
                         Tags = json.decode(GetSchemaTags()),
                         -- Data

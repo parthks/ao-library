@@ -46,9 +46,9 @@ function Register()
         },
         Data = json.encode({
             Type = "Avatar",
+            SpriteTxId = 'QsaFouC5Kx1cels3j8PhUN77z_iSySU6YgpLUBig4kE',
             Metadata = {
                 DisplayName = ao.env.Process.Tags.TxnName or "Spawn Child",
-                SkinNumber = 1,
                 Interaction = {
                     Type = 'SchemaForm',
                     Id = 'Something Mysterious'

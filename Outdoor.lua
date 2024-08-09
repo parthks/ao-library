@@ -25,7 +25,7 @@ RealityParameters = {
             Format = 'TMJ',
             -- TxId = 'hA93lRyitpr-g6_axzR-BHUNZxyu057ZLYuPNIHfwYY', -- TxId of the tilemap in TMJ format
             -- TxId = 'fwOdtuWzyNVT4h54NSBdLOaoIdWkjODyEvDbJaBjR60', -- TxId of the tilemap in TMJ format
-            TxId = 'dbMJI9Iypk4fDz-o7XeKRNrBsBWhqQRc6-L21r2K1lI', -- TxId of the tilemap in TMJ format
+            TxId = 'I8QY8-1bS_pkWXDjKVtSorJhtNnu78Cm_UCNL0h0-hQ', -- TxId of the tilemap in TMJ format
             -- Since we are already setting the spawn in the middle, we don't need this
             -- Offset = { -10, -10 },
         },

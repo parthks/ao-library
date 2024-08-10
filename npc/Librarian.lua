@@ -9,6 +9,17 @@ CHAT_TARGET = 'GbjU2E-ZTsYOpvB02ZnPpD1brak6OZyZm-K8JznidoA'
 SEARCH_QUERIES = SEARCH_QUERIES or {}
 
 
+_0RBIT = "BaMK1dfayo75s3q1ow6AO64UDpD9SEFbeE8xYrY2fyQ"
+_0RBT_TOKEN = "BUhZLMwQ6yZHguLtJYA5lLUa9LQzLXMXRfaq9FVcPJc"
+
+FEE_AMOUNT = "1000000000000" -- 1 $0RBT
+-- BASE_URL = "https://g8way.0rbit.co/graphql"
+BASE_URL = "https://permagate.io/graphql"
+-- The data body to be sent in the POST request
+
+Latest0rbitResopnse = nil -- for testing
+
+
 -- Note: when an integer field has a comment property, it is used to multiply the value before sending it. This is useful for for converting from whole token amounts to the base unit quantity (e.g. wrapped Winston to wrapped Arweave).
 function GetSchemaTags()
     return [[
@@ -26,8 +37,7 @@ function GetSchemaTags()
             "ContentType": {
                 "title": "Content Type",
                 "type": "string",
-                "value": "image",
-                "enum": ["image", "video", "pdf"]
+                "enum": ["image/png", "video/mp4", "application/pdf", "application/epub+zip"]
               },
               "FileOwner": {
                 "title": "Owner of the file",
@@ -66,7 +76,38 @@ Handlers.add('SendSearchQuery',
             message = message .. " and with max size " .. maxSize .. " bytes"
         end
         message = message ..
-            " is important to us. Don't forget to check out the History section on the right side of the library"
+            " has been initiated!"
+
+        BODY = json.encode({
+            query = [[
+                        query {
+                            transactions(
+                                first: 5,
+                                tags: {
+                                    name: "Content-Type",
+                                    values: ["]] .. contentType .. [["]
+                                }
+                            ) {
+                                edges {
+                                    node {
+                                        id
+                                        owner {
+                                            address
+                                        }
+                                        data {
+                                            size
+                                            type
+                                        }
+                                        tags {
+                                            name
+                                            value
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]]
+        });
 
         -- add to search queries
         table.insert(SEARCH_QUERIES, {
@@ -76,14 +117,92 @@ Handlers.add('SendSearchQuery',
         })
 
         Send({
+            Target = _0RBT_TOKEN,
+            Action = "Transfer",
+            Recipient = _0RBIT,
+            Quantity = FEE_AMOUNT,
+            ["X-Url"] = BASE_URL,
+            ["X-Action"] = "Post-Real-Data",
+            ["X-Body"] = BODY
+        })
+        print(Colors.green .. "POST Request sent to the 0rbit process.")
+
+        Send({
             Target = CHAT_TARGET,
             Tags = {
                 Action = 'ChatMessage',
                 ['Author-Name'] = 'Librarian',
             },
-            Data =
-                "Sorry we are still indexing the Permaweb and cannot currently satisfy your request. " .. message,
+            Data = message,
         })
+    end
+)
+
+Handlers.add(
+    "Receive-Data",
+    Handlers.utils.hasMatchingTag("Action", "Receive-Response"),
+    function(msg)
+        local res = json.decode(msg.Data)
+        -- local res = msg.Data
+        print(Colors.green .. "You have received the data from the 0rbit process.")
+
+        Latest0rbitResopnse = res
+
+        if res.errors then
+            print(Colors.red .. "Error: " .. res.errors[1].message)
+            message = "An error occurred while fetching the data from the permaweb." .. res.errors[1].message
+            Send({
+                Target = CHAT_TARGET,
+                Tags = {
+                    Action = 'ChatMessage',
+                    ['Author-Name'] = 'Librarian',
+                },
+                Data = message,
+            })
+            return
+        end
+
+        if res.data == nil or res.data.transactions == nil then
+            print(Colors.red .. "Error: No data received")
+            message = "An error occurred while fetching the data from the permaweb. No data received."
+            message = message .. json.encode(res)
+            Send({
+                Target = CHAT_TARGET,
+                Tags = {
+                    Action = 'ChatMessage',
+                    ['Author-Name'] = 'Librarian',
+                },
+                Data = message,
+            })
+            return
+        end
+
+        local transactions = res.data.transactions.edges
+        local message = "Have received your data from the permaweb!"
+        Send({
+            Target = CHAT_TARGET,
+            Tags = {
+                Action = 'ChatMessage',
+                ['Author-Name'] = 'Librarian',
+            },
+            Data = message,
+        })
+
+        for _, edge in ipairs(transactions) do
+            local node = edge.node
+            message = "ID: " .. node.id .. "\n" ..
+                "Owner: " .. node.owner.address .. "\n" ..
+                "Size: " .. node.data.size .. " bytes\n" ..
+                "Type: " .. node.data.type .. "\n"
+            Send({
+                Target = CHAT_TARGET,
+                Tags = {
+                    Action = 'ChatMessage',
+                    ['Author-Name'] = 'Librarian',
+                },
+                Data = message,
+            })
+        end
     end
 )
 

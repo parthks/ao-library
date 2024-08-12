@@ -1,6 +1,8 @@
 -- Name: hello-npc -- LIBRARIAN
 -- Process ID: KEjhGh2JJS3yAhlCIP6zjjx3lR_0-AHU5bc9qmkE5lw
 
+-- todo: add filtering by tags
+
 local json = require('json')
 
 COUNT = COUNT or 0
@@ -22,6 +24,14 @@ Latest0rbitResopnse = nil -- for testing
 
 -- Note: when an integer field has a comment property, it is used to multiply the value before sending it. This is useful for for converting from whole token amounts to the base unit quantity (e.g. wrapped Winston to wrapped Arweave).
 function GetSchemaTags()
+    --   "MaxSize": {
+    --     "title": "Max Size (in MB)",
+    --     "description": "Max MB for the file.",
+    --     "type": "integer",
+    --     "minimum": 0,
+    --     "maximum": 100,
+    --     "$comment": "1000000"
+    --   }
     return [[
     {
         "type": "object",
@@ -37,22 +47,20 @@ function GetSchemaTags()
             "ContentType": {
                 "title": "Content Type",
                 "type": "string",
-                "enum": ["image/png", "video/mp4", "application/pdf", "application/epub+zip"]
+                "enum": ["image/png", "video/mp4", "application/pdf", "application/epub+zip", "application/json"]
               },
               "FileOwner": {
                 "title": "Owner of the file",
                 "description": "Filter by the owner of the file.",
                 "type": "string",
-                "maxLength": 140
+                "maxLength": 43
               },
-              "MaxSize": {
-                "title": "Max Size (in MB)",
-                "description": "Max MB for the file.",
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 100,
-                "$comment": "1000000"
+              "AfterCursor": {
+                "title": "Get results after this cursor",
+                "description": "Input the cursor to get results after it.",
+                "type": "string",
               }
+
         }
     }
   ]]
@@ -63,6 +71,7 @@ Handlers.add('SendSearchQuery',
     function(msg)
         print('SendSearchQuery')
         local contentType = msg.ContentType
+        local cursor = msg.AfterCursor
         local owner = msg.FileOwner
         local maxSize = msg.MaxSize
 
@@ -72,9 +81,13 @@ Handlers.add('SendSearchQuery',
         if owner then
             message = message .. " with owner " .. owner
         end
-        if maxSize then
-            message = message .. " and with max size " .. maxSize .. " bytes"
+        if cursor then
+            message = message .. " after cursor " .. cursor
         end
+        -- wish this was possible :(
+        -- if maxSize then
+        --     message = message .. " and with max size " .. maxSize .. " bytes"
+        -- end
         message = message ..
             " has been initiated!"
 
@@ -82,13 +95,19 @@ Handlers.add('SendSearchQuery',
             query = [[
                         query {
                             transactions(
-                                first: 5,
+                                ]] .. (owner and 'owners: ["' .. owner .. '"]' or nil) .. [[
+                                ]] .. (cursor and 'after: "' .. cursor .. '"' or nil) .. [[
+                                first: 5
                                 tags: {
                                     name: "Content-Type",
                                     values: ["]] .. contentType .. [["]
                                 }
                             ) {
+                                pageInfo {
+                                    hasNextPage
+                                }
                                 edges {
+                                    cursor
                                     node {
                                         id
                                         owner {
@@ -114,6 +133,7 @@ Handlers.add('SendSearchQuery',
             ContentType = contentType,
             FileOwner = owner,
             MaxSize = maxSize,
+            SearchedBy = msg.From,
         })
 
         Send({
@@ -179,6 +199,17 @@ Handlers.add(
 
         local transactions = res.data.transactions.edges
         local message = "Have received your data from the permaweb!"
+        if #transactions == 0 then
+            message = message .. " No results found."
+        else
+            message = message .. " Found " .. #transactions .. " results."
+            -- check for more pages
+            if (res.data.transactions.pageInfo.hasNextPage) then
+                -- get last txn cursor
+                local nextPageCursor = transactions[#transactions].cursor
+                message = message .. " There is a lot more of this data! Use this cursor to get more: " .. nextPageCursor
+            end
+        end
         Send({
             Target = CHAT_TARGET,
             Tags = {
